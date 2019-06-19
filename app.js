@@ -1,8 +1,11 @@
 const express = require('express')
 const fs = require('fs')
+const cors = require('cors')
 
 const app = express()
 
+app.use(cors());
+app.options('*', cors());
 
 const avatars = JSON.parse(fs.readFileSync('./data/avatars.json', 'utf-8'))
 const stats = JSON.parse(fs.readFileSync('./data/stat.json', 'utf-8'))
@@ -37,17 +40,18 @@ app.get('/api/v1/users', (req, res) => {
     const orderBy = req.query.order_by
     const offset = req.query.offset
     const limit = req.query.limit
-    const regex = new RegExp(searchString.toLowerCase(), 'g')
+
     if (searchString){
+        const regex = new RegExp(searchString.toLowerCase(), 'g')
         users = users.filter(el => {
             for (key in el){
                 if (regex.exec(el[key]) !== null) return el
             }
         })
     } 
-    users = setOrder(orderBy, users)
-    users = setOffset(offset, users)
-    users = setLimit(limit,users)
+    if (orderBy) users = setOrder(orderBy, users)
+    if (offset) users = setOffset(offset, users)
+    if (limit) users = setLimit(limit,users)
         res.status(200).send({
             success: 'true',
             message: 'users has found',
@@ -56,7 +60,7 @@ app.get('/api/v1/users', (req, res) => {
 })
 
 app.get('/api/v1/:userid/avatar', (req, res) => {
-
+    res.setHeader('Access-Control-Allow-Origin', 'localhost');
     const id = parseInt(req.params.userid, 10)
 
     const avatar = avatars.find(el => el.id == id)
