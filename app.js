@@ -39,7 +39,7 @@ app.get('/api/v1/users', (req, res) => {
     const searchString = req.query.search
     const orderBy = req.query.order_by
     const offset = req.query.offset
-    const limit = req.query.limit
+    const limit = req.query.limit || false
 
     if (searchString){
         const regex = new RegExp(searchString.toLowerCase(), 'g')
@@ -49,18 +49,21 @@ app.get('/api/v1/users', (req, res) => {
             }
         })
     } 
+    const length = users.length
     if (orderBy) users = setOrder(orderBy, users)
     if (offset) users = setOffset(offset, users)
     if (limit) users = setLimit(limit,users)
+    const chunks = Math.floor(length / limit)
         res.status(200).send({
             success: 'true',
             message: 'users has found',
+            length: length,
+            chunks: chunks, 
             users: users,
         })
 })
 
 app.get('/api/v1/:userid/avatar', (req, res) => {
-    res.setHeader('Access-Control-Allow-Origin', 'localhost');
     const id = parseInt(req.params.userid, 10)
 
     const avatar = avatars.find(el => el.id == id)
